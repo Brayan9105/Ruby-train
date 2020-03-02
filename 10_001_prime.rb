@@ -1,89 +1,51 @@
-# frozen_string_literal: true
-
-#https://projecteuler.net/problem=7
 # By listing the first six prime numbers: 2, 3, 5, 7, 11, and 13, we can see that the 6th prime is 13.
 # What is the 10 001st prime number?
 
-# https://www.smartickmethod.com/blog/math/operations-and-algebraic-thinking/divisibility/prime-numbers-sieve-eratosthenes/
-# 2 is the only even, (number number % 2).zero? is not prime
-# 3 is the only number divisible by 3
-# 5 is only number divisible by 5
-# 7 is only number divisible by 7
-# stop if the square root of the factor is greater that the number
+# 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 
+# 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 
+# 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 
+# 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 
+# 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541, 547, 557, 563, 569, 571, 577, 
+# 587, 593, 599, 601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677, 683, 691, 701, 
+# 709, 719, 727, 733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 
+# 853, 857, 859, 863, 877, 881, 883, 887, 907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997
+
+# 6 => 13
+# 10001 => 104743
 class Prime
   def initialize
-    @@prime_array = []
-    @@last_prime_found = 1 #start 1 number less than the first prime that is 2
-    @@divisors_array = [2, 3, 5, 7]
+    @cache = [2]
   end
 
-  def found_n_prime(number_to_find)
-    return @@prime_array[number_to_find - 1] if @@prime_array[number_to_find - 1]
+  def find_n_prime(index)
+    return "cache : #{@cache[index - 1]}" if @cache[index - 1]
 
-    loop do
-      @@last_prime_found += 1 #start to search from the last prime found
-      @@prime_array << @@last_prime_found if prime?(@@last_prime_found)
+    posible_prime = @cache.last + 1
+    while @cache.size < index
+      @cache << posible_prime if prime?(posible_prime)
 
-      break if @@prime_array.size == number_to_find
+      posible_prime += 1
     end
-
-    @@prime_array.last
+ 
+    @cache[index - 1]
   end
 
   def prime?(number)
-    @@divisors_array.each do |divisor|
-      return false if (number % divisor).zero? && number != divisor
+    (2..(Math.sqrt(number) + 1)).each do |divisor|
+      return false if (number % divisor).zero?
     end
-
-    # first attend to validate if the number was a prime:
-
-    # return false if (number % 2).zero? && number != 2
-    # return false if (number % 3).zero? && number != 3
-    # return false if (number % 5).zero? && number != 5
-    # return false if (number % 7).zero? && number != 7
 
     true
   end
 end
+prime = Prime.new
 
-prime1 = Prime.new
-p prime1.found_n_prime(1)
-p prime1.found_n_prime(2)
-p prime1.found_n_prime(3)
-p prime1.found_n_prime(4)
-p prime1.found_n_prime(5)
-p prime1.found_n_prime(6)
-p prime1.found_n_prime(6)
-p prime1.found_n_prime(10_001)
+# p prime.find_n_prime(10001)
 
-# first solution to the problem
-=begin
-
-def prime10001(number_of_prime)
-  prime_array = [] 
-  return prime_array[number_of_prime - 1] if prime_array[number_of_prime - 1]
-
-  number = 1
-  loop do
-    break if prime_array.size == number_of_prime
-    
-    number += 1
-    next if (number % 2).zero? && number != 2
-    next if (number % 3).zero? && number != 3
-    next if (number % 5).zero? && number != 5
-    next if (number % 7).zero? && number != 7
-    prime_array << number
-  end
-
-  prime_array.last
-end
-
-puts prime10001(1)
-puts prime10001(2)
-puts prime10001(3)
-puts prime10001(4)
-puts prime10001(5)
-puts prime10001(6)
-puts prime10001(10_001)
-
-=end
+p prime.find_n_prime(1)
+p prime.find_n_prime(2)
+p prime.find_n_prime(3)
+p prime.find_n_prime(4)
+p prime.find_n_prime(5)
+p prime.find_n_prime(6)
+p prime.find_n_prime(10001)
