@@ -1,21 +1,20 @@
-require "minitest/autorun"
+# require "minitest/autorun"
 
 class User
-  attr_accessor :users
- 
+  @@users = []
+  @@id = 0
+  
   def initialize
-    @@users = []
-    @@id = 0
   end
   
-  def unique?(email: nil)
+  def self.unique?(email: nil)
     @@users.each do |user|
       return false if user[:email] == email
     end
     true
   end
 
-  def has_value?(*fields)
+  def self.has_value?(*fields)
     fields.each do |field|
       return false unless field
     end
@@ -23,7 +22,7 @@ class User
   end
 
   def create(first_name: nil, last_name: nil, email: nil, age: nil, address: nil)
-    if has_value?(first_name, last_name, email) && unique?(email: email)
+    if User.has_value?(first_name, last_name, email) && User.unique?(email: email)
       @@users << {
         id: @@id += 1,
         first_name: first_name,
@@ -39,30 +38,30 @@ class User
     end
   end
 
-  def count
+  def self.count
     @@users.size
   end
 
-  def all
+  def self.all
     @@users
   end
 
-  def find(id: 0)
-    return false unless where(id: id).first
+  def self.find(id: 0)
+    return false unless User.where(id: id).first
     
-    where(id: id).first
+    User.where(id: id).first
   end
 
-  def where(*criteria)
+  def self.where(*criteria)
     parsed_criteria = Hash(*criteria)
     
     @@users.select {|user|
-      within_criteria(user, parsed_criteria)
+      User.within_criteria(user, parsed_criteria)
     }
   end
 
 
-  def update(*attributes)
+  def self.update(*attributes)
     parsed_attributes = Hash(*attributes)
     return false unless parsed_attributes[:id]
 
@@ -79,7 +78,7 @@ class User
     false
   end
 
-  def destroy(id: 0)
+  def self.destroy(id: 0)
     @@users.each_with_index do |user, index|
       if user[:id] == id
         @@users.delete_at(index)
@@ -92,7 +91,7 @@ class User
 
   private
 
-  def within_criteria(user, criteria)
+  def self.within_criteria(user, criteria)
     user_valid = true
     criteria.each_pair do |field, value|
       next unless user_valid
@@ -104,132 +103,138 @@ class User
   end
 end
 
-# u = User.new
+u = User.new
+u2 = User.new
+u3 = User.new
 
-# u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
-# u.create(first_name: "DOS", last_name: "TWO", email: "asd2@hotmail.com")
-# u.create(first_name: "UNO", last_name: "Three", email: "asd3@hotmail.com")
-# u.destroy(id:2)
-# p u.all
+p u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
+p u2.create(first_name: "DOS", last_name: "TWO", email: "asd2@hotmail.com")
+p User.all
 
-# p u.count
-# p u.find(id:3)
-# u.update(id: 1, first_name: "Juan", last_name: "Perez")
-# u.update(one: "one", two: "two", three: "three")
-# u.update(id: 3, first_name: "JAM", last_name: "SOLO")
-# p u.all
-# p u.where(first_name: "UNO")
+p u3.create(first_name: "UNO", last_name: "Three", email: "asd3@hotmail.com")
+p User.destroy(id:2)
+p User.all
 
-describe User do
-  before do
-    @u = User.new
-  end
+p User.count
+p User.find(id:3)
+p User.update(id: 1, first_name: "Juan", last_name: "Perez")
+
+p User.update(one: "one", two: "two", three: "three")
+p User.update(id: 3, first_name: "JAM", last_name: "SOLO")
+p User.all
+
+p User.where(first_name: "UNO")
+
+# describe User do
+#   before do
+#     @u = User.new
+#   end
     
-  describe "When create a new user" do
-    it "Must respond positively" do
-      _(@u.create(first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")).must_equal true
-    end
+#   describe "When create a new user" do
+#     it "Must respond positively" do
+#       _(@u.create(first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")).must_equal true
+#     end
 
-    it "Must respond negative" do
-      @u.create(first_name: "prueba", last_name: "Three", email: "asd@hotmail.com")
+#     it "Must respond negative" do
+#       @u.create(first_name: "prueba", last_name: "Three", email: "asd@hotmail.com")
 
-      _(@u.create(last_name: "ONE", email: "asd@hotmail.com")).must_equal false # name require
-      _(@u.create(first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")).must_equal false #no unique email
-    end
-  end
+#       _(@u.create(last_name: "ONE", email: "asd@hotmail.com")).must_equal false # name require
+#       _(@u.create(first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")).must_equal false #no unique email
+#     end
+#   end
 
-  describe "When query all users" do
-    it "Must respond with an array of users" do
-      @u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
+#   describe "When query all users" do
+#     it "Must respond with an array of users" do
+#       @u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
 
-      _(@u.all()).must_equal [{:id=>1, :first_name=>"UNO", :last_name=>"ONE", :email=>"asd@hotmail.com", :age=>nil, :address=>nil}]
-    end
+#       _(@u.all()).must_equal [{:id=>1, :first_name=>"UNO", :last_name=>"ONE", :email=>"asd@hotmail.com", :age=>nil, :address=>nil}]
+#     end
 
-    it "Must respond with a empty array" do
-      _(@u.all()).must_equal []
-    end
-  end
+#     it "Must respond with a empty array" do
+#       _(@u.all()).must_equal []
+#     end
+#   end
 
-  # describe "When query one user" do
-  #   it "Must respond with a hash of the user" do
-  #     @u.create(first_name: "UNO", last_name: "ONE", email: "asd@hotmail.com")
+#   # describe "When query one user" do
+#   #   it "Must respond with a hash of the user" do
+#   #     @u.create(first_name: "UNO", last_name: "ONE", email: "asd@hotmail.com")
       
-  #     _(@u.find(id: 1)).must_equal {}
-  #     _(@u.find(id: 1)).must_equal {:id=>1, :first_name=>"UNO", :last_name=>"ONE", :email=>"asd@hotmail.com", :age=>nil, :address=>nil}
-  #   end
+#   #     _(@u.find(id: 1)).must_equal {}
+#   #     _(@u.find(id: 1)).must_equal {:id=>1, :first_name=>"UNO", :last_name=>"ONE", :email=>"asd@hotmail.com", :age=>nil, :address=>nil}
+#   #   end
 
-  #   it "Must respond with a hash of the user" do
-  #     @u.create(first_name: "UNO", last_name: "ONE", email: "asd@hotmail.com")
-  #     _(@u.find()).must_equal false
-  #   end 
-  # end
+#   #   it "Must respond with a hash of the user" do
+#   #     @u.create(first_name: "UNO", last_name: "ONE", email: "asd@hotmail.com")
+#   #     _(@u.find()).must_equal false
+#   #   end 
+#   # end
 
-  describe "When query the number of users" do
-    it "Must responde 0" do
-      _(@u.count).must_equal 0
-    end
+#   describe "When query the number of users" do
+#     it "Must responde 0" do
+#       _(@u.count).must_equal 0
+#     end
 
-    it "Must responde 2" do
-      @u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
-      @u.create(first_name: "DOS", last_name: "TWO", email: "asd2@hotmail.com")
+#     it "Must responde 2" do
+#       @u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
+#       @u.create(first_name: "DOS", last_name: "TWO", email: "asd2@hotmail.com")
 
-      _(@u.count).must_equal 2
-    end
-  end
+#       _(@u.count).must_equal 2
+#     end
+#   end
 
-  describe "When query users with criteria" do
-    it "Must responde with a empty array" do
-      @u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
-      @u.create(first_name: "DOS", last_name: "TWO", email: "asd2@hotmail.com")
-      @u.create(first_name: "UNO", last_name: "Three", email: "asd3@hotmail.com")
+#   describe "When query users with criteria" do
+#     it "Must responde with a empty array" do
+#       @u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
+#       @u.create(first_name: "DOS", last_name: "TWO", email: "asd2@hotmail.com")
+#       @u.create(first_name: "UNO", last_name: "Three", email: "asd3@hotmail.com")
 
-      _(@u.where(first_name: "Paula")).must_equal []
-    end
+#       _(@u.where(first_name: "Paula")).must_equal []
+#     end
 
-    it "Must responde with an array of users" do
-      @u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
-      @u.create(first_name: "DOS", last_name: "TWO", email: "asd2@hotmail.com")
-      @u.create(first_name: "UNO", last_name: "Three", email: "asd3@hotmail.com")
+#     it "Must responde with an array of users" do
+#       @u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
+#       @u.create(first_name: "DOS", last_name: "TWO", email: "asd2@hotmail.com")
+#       @u.create(first_name: "UNO", last_name: "Three", email: "asd3@hotmail.com")
 
-      _(@u.where(first_name: "UNO")).must_equal [{:id=>1, :first_name=>"UNO", :last_name=>"ONE", :email=>"asd@hotmail.com", :age=>nil, :address=>nil}, {:id=>3, :first_name=>"UNO", :last_name=>"Three", :email=>"asd3@hotmail.com", :age=>nil, :address=>nil}]
-    end
-  end
+#       _(@u.where(first_name: "UNO")).must_equal [{:id=>1, :first_name=>"UNO", :last_name=>"ONE", :email=>"asd@hotmail.com", :age=>nil, :address=>nil}, {:id=>3, :first_name=>"UNO", :last_name=>"Three", :email=>"asd3@hotmail.com", :age=>nil, :address=>nil}]
+#     end
+#   end
 
-  describe "When update an users" do
-      it "Must responde positive" do
-      @u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
-      @u.create(first_name: "DOS", last_name: "TWO", email: "asd2@hotmail.com")
-      @u.create(first_name: "UNO", last_name: "Three", email: "asd3@hotmail.com")
+#   describe "When update an users" do
+#       it "Must responde positive" do
+#       @u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
+#       @u.create(first_name: "DOS", last_name: "TWO", email: "asd2@hotmail.com")
+#       @u.create(first_name: "UNO", last_name: "Three", email: "asd3@hotmail.com")
 
-      _(@u.update(id: 3, first_name: "JAM", last_name: "SOLO")).must_equal true
-    end
+#       _(@u.update(id: 3, first_name: "JAM", last_name: "SOLO")).must_equal true
+#     end
 
-    it "Must responde negative" do
-      @u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
-      @u.create(first_name: "DOS", last_name: "TWO", email: "asd2@hotmail.com")
-      @u.create(first_name: "UNO", last_name: "Three", email: "asd3@hotmail.com")
+#     it "Must responde negative" do
+#       @u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
+#       @u.create(first_name: "DOS", last_name: "TWO", email: "asd2@hotmail.com")
+#       @u.create(first_name: "UNO", last_name: "Three", email: "asd3@hotmail.com")
 
-      _(@u.update(id: 4, first_name: "JAM", last_name: "SOLO")).must_equal false
-      _(@u.update(first_name: "JAM", last_name: "SOLO")).must_equal false
-    end
-  end
+#       _(@u.update(id: 4, first_name: "JAM", last_name: "SOLO")).must_equal false
+#       _(@u.update(first_name: "JAM", last_name: "SOLO")).must_equal false
+#     end
+#   end
 
-  describe "When destroy an users" do
-    it "Must responde positive" do
-      @u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
-      @u.create(first_name: "DOS", last_name: "TWO", email: "asd2@hotmail.com")
-      @u.create(first_name: "UNO", last_name: "Three", email: "asd3@hotmail.com")
+#   describe "When destroy an users" do
+#     it "Must responde positive" do
+#       @u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
+#       @u.create(first_name: "DOS", last_name: "TWO", email: "asd2@hotmail.com")
+#       @u.create(first_name: "UNO", last_name: "Three", email: "asd3@hotmail.com")
 
-      _(@u.destroy(id: 3)).must_equal true
-    end
+#       _(@u.destroy(id: 3)).must_equal true
+#     end
 
-    it "Must responde negative" do
-      @u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
-      @u.create(first_name: "DOS", last_name: "TWO", email: "asd2@hotmail.com")
-      @u.create(first_name: "UNO", last_name: "Three", email: "asd3@hotmail.com")
+#     it "Must responde negative" do
+#       @u.create( first_name: "UNO",last_name: "ONE", email: "asd@hotmail.com")
+#       @u.create(first_name: "DOS", last_name: "TWO", email: "asd2@hotmail.com")
+#       @u.create(first_name: "UNO", last_name: "Three", email: "asd3@hotmail.com")
 
-      _(@u.destroy()).must_equal false
-      _(@u.destroy(id: 4)).must_equal false
-    end
-  end
-end
+#       _(@u.destroy()).must_equal false
+#       _(@u.destroy(id: 4)).must_equal false
+#     end
+#   end
+# end
